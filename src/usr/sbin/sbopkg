@@ -2469,13 +2469,7 @@ _curl_fail() {
 _curl_sync_package() {
     echo -n "$1-$2..."
     mkdir -p $REPO_DIR/$3
-#    for file in $5; do	
-#	echo -n "."
-#	curl --silent --fail $REPO_LINK/$3/$file > $REPO_DIR/$3/$file || _curl_fail $?
-#   done;
     
-    echo "3 - $3"
-    echo "Downloading http://$REPO_LINK/$3.tar.gz > $REPO_DIR/$3.tar.gz" >> /tmp/log 
     curl  --fail --silent "http://$REPO_LINK/$3.tar.gz" > "$REPO_DIR/$3.tar.gz" || _curl_fail $?
     echo "Ok"
 }

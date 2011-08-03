@@ -222,7 +222,7 @@ load_repositories() {
             # Sanity checks
             # these two assignments work around a bash3-4 incompatibility
             local GPG='^GPG$|^$'
-            local RSYNC='^rsync$|^git$|^http$|^$'
+            local RSYNC='^rsync$|^git$|^curl$|^$'
             [[ ! ${TMPARRAY[6]} =~ $GPG ]] && ERROR="gpg"
             [[ ! ${TMPARRAY[4]} =~ $RSYNC ]] && ERROR="tool"
             [[ ${#TMPARRAY[@]} -ne $REPOS_FIELDS ]] && ERROR="fields"
@@ -2434,13 +2434,11 @@ git_command() {
     echo
 }
 
-http_command() {
+curl_command() {
     local SYNC_LOCK=$SBOPKGTMP/sbopkg_sync.lck
     local URL BRANCH CWD
 
-    echo "link = $REPO_LINK/"
-    echo "dir = $REPO_DIR/"
-    sleep 10;
+    curl $REPO_LINK/ChangeLog.txt
     # All done
     rm -f $SBOPKGTMP/sbopkg_sync.lck
     echo
@@ -2462,7 +2460,7 @@ sync_repo() {
         fi
         continue
     fi
-    if [[ $REPO_TOOL != "rsync" && $REPO_TOOL != "git" && $REPO_TOOL != "http" ]]; then
+    if [[ $REPO_TOOL != "rsync" && $REPO_TOOL != "git" && $REPO_TOOL != "curl" ]]; then
         if [[ $DIAG ]]; then
             dialog --title "ERROR" --msgbox \
                 "Unsupported fetching tool \"$REPO_TOOL\"." 8 30

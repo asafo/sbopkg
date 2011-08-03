@@ -1003,6 +1003,11 @@ checkout_rsync_branch() {
     REPO_DIR=$REPO_DIR/$REPO_BRANCH
 }
 
+checkout_curl_branch() {
+    REPO_DIR=$REPO_DIR/$REPO_BRANCH
+}
+
+
 checkout_git_branch() {
     # This function makes sure that in $REPO_DIR there's the currently
     # selected branch.
@@ -1072,7 +1077,7 @@ set_repo_vars() {
             REPO_GPG=${REPOSITORIES[$((i + 6))]}
             REPO_DIR=$REPO_ROOT/$REPO_NAME
 
-            if [[ $REPO_TOOL = "rsync" || $REPO_TOOL = "git" ]]; then
+            if [[ $REPO_TOOL = "rsync" || $REPO_TOOL = "git"  || $REPO_TOOL = "curl" ]]; then
                 checkout_${REPO_TOOL}_branch
             fi
 

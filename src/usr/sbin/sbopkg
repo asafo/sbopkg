@@ -2434,11 +2434,72 @@ git_command() {
     echo
 }
 
+_curl_changelog() {
+    curl --fail $REPO_LINK/ChangeLog.txt > $REPO_DIR/ChangeLog.new
+    if [ ! $? -eq 0 ]; then
+            echo
+	    echo "The ChangeLog.txt file was not found"
+            echo "(The repo's LINK is currently set to: $REPO_LINK)."
+            echo "Please check your settings and try again later."
+            echo
+	    return 10
+    fi
+
+    echo "Downloaded ChangeLog"
+    while read line; do
+	if [ "$line" ~= ".*/.*" ]; then
+	    echo "line : $line"
+	fi
+    done < $REPO_DIR/ChangeLog.new
+
+    return 0
+}
+
+_curl_slackbuilds_txt() {
+    curl --fail $REPO_LINK/SLACKBUILDS.TXT.gz > $REPO_DIR/SLACKBUILDS.TXT.gz || return $?
+    gunzip $REPO_DIR/SLACKBUILDS.TXT.gz
+    regexp="SLACKBUILD (.*:)(.*)"
+    while read line; do
+	if [[ $line =~ $regexp ]]; then	
+	    name=${BASH_REMATCH[1]}
+	    echo "searching $name"
+	    case $name in
+		"NAME:" ) 
+		    package_name=${BASH_REMATCH[2]}
+		    ;;
+		"LOCATION:" ) 
+		    package_location="${BASH_REMATCH[2]}"
+		    ;;
+		"FILES:" )
+		    package_files="${BASH_REMATCH[2]}"
+		    ;;
+		"DOWNLOAD:" )
+		    package_download="${BASH_REMATCH[2]}"
+		    ;;
+		"VERSION:" ) 
+		    package_version="${BASH_REMATCH[2]}"
+		    ;;
+		"MD5SUM:" ) 
+		    package_md5sum="${BASH_REMATCH[2]}"
+		    ;;
+		"SHORT DESCRIPTION:" ) 
+		    package_shortdesc="${BASH_REMATCH[2]}"
+		    ;;
+		* ) 
+		    echo "unknown ${BASH_REMATCH[1]} : ${BASH_REMATCH[2]}"
+		    sleep 0.7
+		    ;;
+	    esac
+	fi
+    done < $REPO_DIR/SLACKBUILDS.TXT
+}
+
 curl_command() {
     local SYNC_LOCK=$SBOPKGTMP/sbopkg_sync.lck
     local URL BRANCH CWD
 
-    curl $REPO_LINK/ChangeLog.txt
+    _curl_slackbuilds_txt
+
     # All done
     rm -f $SBOPKGTMP/sbopkg_sync.lck
     echo

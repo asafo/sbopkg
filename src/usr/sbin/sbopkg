@@ -2470,7 +2470,7 @@ _curl_sync_package() {
     echo -n "$1-$2..."
     mkdir -p $REPO_DIR/$3
     
-    curl  --fail --silent "http://$REPO_LINK/$3.tar.gz" > "$REPO_DIR/$3.tar.gz" || _curl_fail $?
+    curl  --fail --silent "$REPO_LINK/$3.tar.gz" > "$REPO_DIR/$3.tar.gz" || _curl_fail $?
     echo "Ok"
 }
 

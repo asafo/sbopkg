@@ -2485,7 +2485,7 @@ curl_sync_package() {
 	|| return $?
     category=$(echo $3 | cut -d'/' -f2)
     cd $REPO_DIR/$category
-    tar xf "$1.tar.gz"
+    tar xf "$1.tar.gz" &
 
     echo "Ok"
 }
@@ -2556,6 +2556,9 @@ curl_command() {
 	curl_changelog_txt
     else
 	curl_slackbuilds_txt "all"
+        echo "Importing $REPO_DESC GPG Key..."
+        gpg --quiet --fetch-key http://www.slackbuilds.org/GPG-KEY
+        echo "Import done."
     fi
 
     # All done

@@ -2439,7 +2439,7 @@ git_command() {
     echo
 }
 
-_curl_changelog_txt() {
+curl_changelog_txt() {
 
     curl --fail $REPO_LINK/ChangeLog.txt >  $SBOPKGTMP/ChangeLog.new
     if [ ! $? -eq 0 ]; then
@@ -2468,27 +2468,35 @@ _curl_changelog_txt() {
     done < $SBOPKGTMP/ChangeLog.diff
 
     /bin/mv $REPO_DIR/SLACKBUILDS.TXT $SBOPKGTMP/SLACKBUILDS.TXT
-    _curl_slackbuilds_txt "$packages"
+    curl_slackbuilds_txt "$packages"
     /bin/mv $SBOPKGTMP/ChangeLog.new $REPO_DIR/ChangeLog.txt
 
     return 0
 }
 
-# _curl_sync_package $package_name $package_version $package_location \
-#	    "$package_download" "$package_files"  $package_md5sum "$package_shortdesc"
-_curl_sync_package() {
+# curl_sync_package $package_name $package_version $package_location
+#	    "$package_download" "$package_files"  $package_md5sum
+# "$package_shortdesc"
+curl_sync_package() {
     echo -n "$1-$2..."
     mkdir -p $REPO_DIR/$3
     
-    curl  --fail --silent "$REPO_LINK/$3.tar.gz" > "$REPO_DIR/$3.tar.gz" || return $?
+    curl  --fail --silent "$REPO_LINK/$3.tar.gz" > "$REPO_DIR/$3.tar.gz" \
+	|| return $?
+    category=$(echo $3 | cut -d'/' -f2)
+    cd $REPO_DIR/$category
+    tar xf "$1.tar.gz"
+
     echo "Ok"
 }
 
-# _curl_slackbuilds_txt - process SLACKBUILD.TXT to synchronize some or all packages
-# _curl_slackbuilds_txt packages
-_curl_slackbuilds_txt() {
+# curl_slackbuilds_txt - process SLACKBUILD.TXT to synchronize some or all
+# packages
+# curl_slackbuilds_txt packages
+curl_slackbuilds_txt() {
 
-    curl --fail $REPO_LINK/SLACKBUILDS.TXT.gz > $REPO_DIR/SLACKBUILDS.TXT.gz || return $?
+    curl --fail $REPO_LINK/SLACKBUILDS.TXT.gz > \
+	$REPO_DIR/SLACKBUILDS.TXT.gz || return $?
     gunzip $REPO_DIR/SLACKBUILDS.TXT.gz
 
     regexp="SLACKBUILD[ ]*([[:alnum:]]*): (.*)"
@@ -2500,12 +2508,12 @@ _curl_slackbuilds_txt() {
 		"NAME" )
 		    if [[ "$package_name" ]]; then
 			if [ "$1" == "all" ]; then
-			    _curl_sync_package $package_name $package_version $package_location \
+			    curl_sync_package $package_name $package_version $package_location \
 				"$package_download" "$package_files"  $package_md5sum "$package_shortdesc"
 			else
 			    for pkg_name in $1; do
 				if [ $pkg_name == $package_name ]; then
-				    _curl_sync_package $package_name $package_version $package_location \
+				    curl_sync_package $package_name $package_version $package_location \
 					"$package_download" "$package_files"  $package_md5sum "$package_shortdesc"
 				fi
 			    done
@@ -2537,6 +2545,7 @@ _curl_slackbuilds_txt() {
 	    esac
 	fi
     done < $REPO_DIR/SLACKBUILDS.TXT
+    curl --fail $REPO_LINK/ChangeLog.txt >  $REPO_DIR/ChangeLog.txt
 }
 
 curl_command() {
@@ -2544,9 +2553,9 @@ curl_command() {
     local URL BRANCH CWD
 
     if [ -f $REPO_DIR/ChangeLog.txt ]; then
-	_curl_changelog_txt
+	curl_changelog_txt
     else
-	_curl_slackbuilds_txt "all"
+	curl_slackbuilds_txt "all"
     fi
 
     # All done

@@ -2495,6 +2495,8 @@ curl_sync_package() {
     
     curl  --fail --silent "$REPO_LINK/$3.tar.gz" > "$REPO_DIR/$3.tar.gz" \
 	|| return $?
+    curl  --fail --silent "$REPO_LINK/$3.tar.gz.asc" > "$REPO_DIR/$3.tar.gz.asc" \
+	|| return $?
     category=$(echo $3 | cut -d'/' -f2)
     cd $REPO_DIR/$category
     tar xf "$1.tar.gz"
